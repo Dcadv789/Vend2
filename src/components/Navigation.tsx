@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Calculator, Save, BarChart2, GitCompare } from 'lucide-react';
+import { Calculator, History, BarChart2, GitCompare } from 'lucide-react';
 
 function Navigation() {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -25,7 +25,7 @@ function Navigation() {
               <span>Price</span>
             </NavLink>
             <NavLink to="/history" className={linkClass}>
-              <Save size={20} />
+              <History size={20} />
               <span>Simulações Salvas</span>
             </NavLink>
             <NavLink to="/comparison" className={linkClass}>
