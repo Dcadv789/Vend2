@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { History, Trash2, Eye, EyeOff, Plus } from 'lucide-react';
+import { History, Trash2, Eye, EyeOff, Plus, Edit2 } from 'lucide-react';
 
 interface SavedSimulation {
   id: string;
@@ -15,6 +15,7 @@ interface SavedSimulation {
   totalAmount: number;
   totalInterest: number;
   installments: Installment[];
+  earlyPayments?: EarlyPayment[];
 }
 
 interface Installment {
@@ -27,6 +28,7 @@ interface Installment {
 }
 
 interface EarlyPayment {
+  id: string;
   date: string;
   amount: number;
   reduceInstallment: boolean;
@@ -58,22 +60,24 @@ function Notification({ message, onClose }: NotificationProps) {
   );
 }
 
-function EarlyPaymentModal({ onClose, onConfirm, currentBalance }: { 
+function EarlyPaymentModal({ onClose, onConfirm, currentBalance, initialPayment = null }: { 
   onClose: () => void; 
   onConfirm: (payment: EarlyPayment) => void;
   currentBalance: number;
+  initialPayment?: EarlyPayment | null;
 }) {
-  const [date, setDate] = useState('');
-  const [amount, setAmount] = useState('');
-  const [reduceInstallment, setReduceInstallment] = useState(true);
+  const [date, setDate] = useState(initialPayment?.date || '');
+  const [amount, setAmount] = useState(initialPayment ? String(initialPayment.amount * 100) : '');
+  const [reduceInstallment, setReduceInstallment] = useState(initialPayment?.reduceInstallment ?? true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!date || !amount) return;
 
     onConfirm({
+      id: initialPayment?.id || String(Date.now()),
       date,
-      amount: Number(amount),
+      amount: Number(amount) / 100,
       reduceInstallment
     });
     onClose();
@@ -97,7 +101,7 @@ function EarlyPaymentModal({ onClose, onConfirm, currentBalance }: {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full">
         <h3 className="text-xl font-bold text-gray-800 mb-4">
-          Adicionar Pagamento Antecipado
+          {initialPayment ? 'Editar Pagamento Antecipado' : 'Adicionar Pagamento Antecipado'}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -160,7 +164,7 @@ function EarlyPaymentModal({ onClose, onConfirm, currentBalance }: {
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              Confirmar
+              {initialPayment ? 'Salvar Alterações' : 'Confirmar'}
             </button>
           </div>
         </form>
@@ -169,13 +173,16 @@ function EarlyPaymentModal({ onClose, onConfirm, currentBalance }: {
   );
 }
 
-type FilterType = 'ALL' | 'SAC' | 'PRICE';
-
-function SimulationModal({ simulation: initialSimulation, onClose }: { simulation: SavedSimulation; onClose: () => void }) {
+function SimulationModal({ simulation: initialSimulation, onClose, onUpdate }: { 
+  simulation: SavedSimulation; 
+  onClose: () => void;
+  onUpdate: (updatedSimulation: SavedSimulation) => void;
+}) {
   const [showInstallments, setShowInstallments] = useState(true);
   const [showEarlyPaymentModal, setShowEarlyPaymentModal] = useState(false);
   const [simulation, setSimulation] = useState(initialSimulation);
-  const [earlyPayments, setEarlyPayments] = useState<EarlyPayment[]>([]);
+  const [earlyPayments, setEarlyPayments] = useState<EarlyPayment[]>(initialSimulation.earlyPayments || []);
+  const [editingPayment, setEditingPayment] = useState<EarlyPayment | null>(null);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
@@ -184,44 +191,128 @@ function SimulationModal({ simulation: initialSimulation, onClose }: { simulatio
     });
   };
 
-  const handleEarlyPayment = (payment: EarlyPayment) => {
-    setEarlyPayments([...earlyPayments, payment]);
-    
-    const newInstallments = [...simulation.installments];
-    const paymentDate = new Date(payment.date);
-    let remainingAmount = payment.amount;
-    
-    for (let i = 0; i < newInstallments.length; i++) {
-      const installmentDate = new Date(newInstallments[i].date);
-      if (installmentDate > paymentDate && remainingAmount > 0) {
-        if (payment.reduceInstallment) {
-          const reduction = remainingAmount / (newInstallments.length - i);
-          newInstallments[i].payment -= reduction;
-          newInstallments[i].amortization = newInstallments[i].payment - newInstallments[i].interest;
-        } else {
-          const currentInstallment = newInstallments[i];
-          if (remainingAmount >= currentInstallment.payment) {
-            remainingAmount -= currentInstallment.payment;
-            newInstallments[i].payment = 0;
-            newInstallments[i].amortization = 0;
-            newInstallments[i].interest = 0;
-          } else {
-            newInstallments[i].payment -= remainingAmount;
-            newInstallments[i].amortization = newInstallments[i].payment - newInstallments[i].interest;
-            remainingAmount = 0;
-          }
+  const recalculateInstallments = (payments: EarlyPayment[]) => {
+    let newInstallments = [...initialSimulation.installments];
+    const monthlyRate = simulation.monthlyRate / 100;
+
+    payments.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    for (const payment of payments) {
+      const paymentDate = new Date(payment.date);
+      const affectedInstallments = newInstallments.filter(
+        inst => new Date(inst.date) > paymentDate
+      );
+
+      if (affectedInstallments.length === 0) continue;
+
+      let currentBalance = affectedInstallments[0].balance;
+      currentBalance -= payment.amount;
+
+      if (payment.reduceInstallment) {
+        const remainingInstallments = affectedInstallments.length;
+        for (let i = 0; i < remainingInstallments; i++) {
+          const interest = currentBalance * monthlyRate;
+          const amortization = currentBalance / (remainingInstallments - i);
+          const installmentPayment = interest + amortization;
+
+          affectedInstallments[i].payment = installmentPayment;
+          affectedInstallments[i].interest = interest;
+          affectedInstallments[i].amortization = amortization;
+          affectedInstallments[i].balance = currentBalance - amortization;
+
+          currentBalance -= amortization;
+        }
+      } else {
+        const newRemainingInstallments = Math.ceil(currentBalance / affectedInstallments[0].amortization);
+        newInstallments = newInstallments.filter(
+          (inst, index) => index < newInstallments.length - affectedInstallments.length + newRemainingInstallments
+        );
+
+        for (let i = 0; i < newRemainingInstallments; i++) {
+          const interest = currentBalance * monthlyRate;
+          const amortization = affectedInstallments[0].amortization;
+          const installmentPayment = interest + amortization;
+
+          const installmentDate = new Date(paymentDate);
+          installmentDate.setMonth(paymentDate.getMonth() + i + 1);
+
+          newInstallments[newInstallments.length - newRemainingInstallments + i] = {
+            number: i + 1,
+            date: installmentDate.toLocaleDateString('pt-BR'),
+            payment: installmentPayment,
+            amortization,
+            interest,
+            balance: currentBalance - amortization
+          };
+
+          currentBalance -= amortization;
         }
       }
-      
-      if (i > 0) {
-        newInstallments[i].balance = newInstallments[i-1].balance - newInstallments[i].amortization;
-      }
     }
+
+    return newInstallments;
+  };
+
+  const handleEarlyPayment = (payment: EarlyPayment) => {
+    let updatedPayments: EarlyPayment[];
     
-    setSimulation({
+    if (editingPayment) {
+      updatedPayments = earlyPayments.map(p => 
+        p.id === editingPayment.id ? payment : p
+      );
+    } else {
+      updatedPayments = [...earlyPayments, payment];
+    }
+
+    const newInstallments = recalculateInstallments(updatedPayments);
+    const updatedSimulation = {
       ...simulation,
-      installments: newInstallments
-    });
+      installments: newInstallments,
+      earlyPayments: updatedPayments,
+      firstPayment: newInstallments[0].payment,
+      lastPayment: newInstallments[newInstallments.length - 1].payment,
+      totalAmount: newInstallments.reduce((sum, inst) => sum + inst.payment, 0) + simulation.downPayment,
+      totalInterest: newInstallments.reduce((sum, inst) => sum + inst.interest, 0)
+    };
+
+    setSimulation(updatedSimulation);
+    setEarlyPayments(updatedPayments);
+    onUpdate(updatedSimulation);
+    setEditingPayment(null);
+  };
+
+  const handleEditPayment = (payment: EarlyPayment) => {
+    setEditingPayment(payment);
+    setShowEarlyPaymentModal(true);
+  };
+
+  const handleDeletePayment = (paymentId: string) => {
+    const updatedPayments = earlyPayments.filter(p => p.id !== paymentId);
+    
+    if (updatedPayments.length === 0) {
+      setSimulation(initialSimulation);
+      setEarlyPayments([]);
+      onUpdate(initialSimulation);
+    } else {
+      const newInstallments = recalculateInstallments(updatedPayments);
+      const updatedSimulation = {
+        ...simulation,
+        installments: newInstallments,
+        earlyPayments: updatedPayments,
+        firstPayment: newInstallments[0].payment,
+        lastPayment: newInstallments[newInstallments.length - 1].payment,
+        totalAmount: newInstallments.reduce((sum, inst) => sum + inst.payment, 0) + simulation.downPayment,
+        totalInterest: newInstallments.reduce((sum, inst) => sum + inst.interest, 0)
+      };
+      
+      setSimulation(updatedSimulation);
+      setEarlyPayments(updatedPayments);
+      onUpdate(updatedSimulation);
+    }
+  };
+
+  const toggleInstallments = () => {
+    setShowInstallments(!showInstallments);
   };
 
   const hasInstallments = simulation.installments && simulation.installments.length > 0;
@@ -296,7 +387,7 @@ function SimulationModal({ simulation: initialSimulation, onClose }: { simulatio
             </div>
             <div className="bg-blue-600 p-4 rounded-xl text-white">
               <p className="text-sm font-medium mb-1 opacity-90">Prazo</p>
-              <p className="text-lg font-semibold">{simulation.months} meses</p>
+              <p className="text-lg font-semibold">{simulation.installments.length} meses</p>
             </div>
             <div className="bg-blue-600 p-4 rounded-xl text-white">
               <p className="text-sm font-medium mb-1 opacity-90">Sistema</p>
@@ -308,15 +399,29 @@ function SimulationModal({ simulation: initialSimulation, onClose }: { simulatio
             <div className="bg-green-50 p-4 rounded-xl border border-green-200">
               <h4 className="text-lg font-semibold text-gray-800 mb-4">Pagamentos Antecipados</h4>
               <div className="space-y-2">
-                {earlyPayments.map((payment, index) => (
-                  <div key={index} className="flex justify-between items-center">
+                {earlyPayments.map((payment) => (
+                  <div key={payment.id} className="flex justify-between items-center">
                     <span className="text-gray-600">
                       Pagamento em {new Date(payment.date).toLocaleDateString('pt-BR')}:
                     </span>
-                    <span className="font-medium text-green-600">
-                      {formatCurrency(payment.amount)}
-                      {payment.reduceInstallment ? ' (Redução de parcela)' : ' (Redução de prazo)'}
-                    </span>
+                    <div className="flex items-center gap-4">
+                      <span className="font-medium text-green-600">
+                        {formatCurrency(payment.amount)}
+                        {payment.reduceInstallment ? ' (Redução de parcela)' : ' (Redução de prazo)'}
+                      </span>
+                      <button
+                        onClick={() => handleEditPayment(payment)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePayment(payment.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -325,7 +430,10 @@ function SimulationModal({ simulation: initialSimulation, onClose }: { simulatio
 
           <div className="flex justify-between items-center">
             <button
-              onClick={() => setShowEarlyPaymentModal(true)}
+              onClick={() => {
+                setEditingPayment(null);
+                setShowEarlyPaymentModal(true);
+              }}
               className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
             >
               <Plus size={16} className="mr-2" />
@@ -333,7 +441,7 @@ function SimulationModal({ simulation: initialSimulation, onClose }: { simulatio
             </button>
             {hasInstallments && (
               <button
-                onClick={() => setShowInstallments(!showInstallments)}
+                onClick={toggleInstallments}
                 className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
               >
                 {showInstallments ? (
@@ -409,9 +517,13 @@ function SimulationModal({ simulation: initialSimulation, onClose }: { simulatio
 
         {showEarlyPaymentModal && (
           <EarlyPaymentModal
-            onClose={() => setShowEarlyPaymentModal(false)}
+            onClose={() => {
+              setShowEarlyPaymentModal(false);
+              setEditingPayment(null);
+            }}
             onConfirm={handleEarlyPayment}
             currentBalance={simulation.installments[0].balance}
+            initialPayment={editingPayment}
           />
         )}
       </div>
@@ -419,7 +531,9 @@ function SimulationModal({ simulation: initialSimulation, onClose }: { simulatio
   );
 }
 
-function SimulationHistory() {
+type FilterType = 'ALL' | 'SAC' | 'PRICE';
+
+export default function SimulationHistory() {
   const [simulations, setSimulations] = React.useState<SavedSimulation[]>([]);
   const [filter, setFilter] = useState<FilterType>('ALL');
   const [selectedSimulation, setSelectedSimulation] = useState<SavedSimulation | null>(null);
@@ -437,6 +551,14 @@ function SimulationHistory() {
     setSimulations(updatedSimulations);
     localStorage.setItem('simulations', JSON.stringify(updatedSimulations));
     setShowNotification(true);
+  };
+
+  const handleUpdateSimulation = (updatedSimulation: SavedSimulation) => {
+    const updatedSimulations = simulations.map(sim =>
+      sim.id === updatedSimulation.id ? updatedSimulation : sim
+    );
+    setSimulations(updatedSimulations);
+    localStorage.setItem('simulations', JSON.stringify(updatedSimulations));
   };
 
   const formatCurrency = (value: number) => {
@@ -571,9 +693,9 @@ function SimulationHistory() {
                     {formatCurrency(simulation.downPayment)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {simulation.months} meses
+                    {simulation.installments.length} meses
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray -900">
                     {simulation.monthlyRate}%
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -606,10 +728,9 @@ function SimulationHistory() {
         <SimulationModal
           simulation={selectedSimulation}
           onClose={() => setSelectedSimulation(null)}
+          onUpdate={handleUpdateSimulation}
         />
       )}
     </div>
   );
 }
-
-export default SimulationHistory;
