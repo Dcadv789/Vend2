@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { History, Trash2, Eye } from 'lucide-react';
+import { History, Trash2, Eye, EyeOff } from 'lucide-react';
 
 interface SavedSimulation {
   id: string;
@@ -14,6 +14,7 @@ interface SavedSimulation {
   lastPayment: number;
   totalAmount: number;
   totalInterest: number;
+  installments: Installment[];
 }
 
 interface Installment {
@@ -23,6 +24,32 @@ interface Installment {
   amortization: number;
   interest: number;
   balance: number;
+}
+
+interface NotificationProps {
+  message: string;
+  onClose: () => void;
+}
+
+function Notification({ message, onClose }: NotificationProps) {
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4 transform transition-all animate-fade-in">
+        <div className="flex items-center justify-center space-x-2">
+          <div className="w-4 h-4 rounded-full bg-green-500 animate-pulse"></div>
+          <p className="text-gray-800 font-medium">{message}</p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 type FilterType = 'ALL' | 'SAC' | 'PRICE';
@@ -37,10 +64,14 @@ function SimulationModal({ simulation, onClose }: { simulation: SavedSimulation;
     });
   };
 
+  const hasInstallments = simulation.installments && simulation.installments.length > 0;
+  const totalPurchaseAmount = simulation.financingAmount;
+  const financedAmount = simulation.financingAmount - simulation.downPayment;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 space-y-6">
+      <div className="bg-white rounded-xl shadow-xl max-w-6xl w-full h-[90vh] flex flex-col">
+        <div className="p-6 space-y-6 flex-shrink-0">
           <div className="flex justify-between items-center">
             <h3 className="text-2xl font-bold text-gray-800">
               Detalhes da Simulação
@@ -53,19 +84,44 @@ function SimulationModal({ simulation, onClose }: { simulation: SavedSimulation;
             </button>
           </div>
 
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+              <h4 className="text-lg font-semibold text-gray-800 mb-4">Valores da Compra</h4>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Valor Total do Bem:</span>
+                  <span className="font-medium">{formatCurrency(totalPurchaseAmount)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Valor da Entrada:</span>
+                  <span className="font-medium text-green-600">{formatCurrency(simulation.downPayment)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Valor Financiado:</span>
+                  <span className="font-medium">{formatCurrency(financedAmount)}</span>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+              <h4 className="text-lg font-semibold text-gray-800 mb-4">Custos do Financiamento</h4>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Total de Juros:</span>
+                  <span className="font-medium text-red-600">{formatCurrency(simulation.totalInterest)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Custo Total do Financiamento:</span>
+                  <span className="font-medium">{formatCurrency(simulation.totalAmount - simulation.downPayment)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Custo Total (com entrada):</span>
+                  <span className="font-medium">{formatCurrency(simulation.totalAmount)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-5 gap-4">
-            <div className="bg-blue-600 p-4 rounded-xl text-white">
-              <p className="text-sm font-medium mb-1 opacity-90">Valor Total</p>
-              <p className="text-lg font-semibold">{formatCurrency(simulation.totalAmount)}</p>
-            </div>
-            <div className="bg-blue-600 p-4 rounded-xl text-white">
-              <p className="text-sm font-medium mb-1 opacity-90">Total de Juros</p>
-              <p className="text-lg font-semibold">{formatCurrency(simulation.totalInterest)}</p>
-            </div>
-            <div className="bg-blue-600 p-4 rounded-xl text-white">
-              <p className="text-sm font-medium mb-1 opacity-90">Valor Financiado</p>
-              <p className="text-lg font-semibold">{formatCurrency(simulation.financingAmount)}</p>
-            </div>
             <div className="bg-blue-600 p-4 rounded-xl text-white">
               <p className="text-sm font-medium mb-1 opacity-90">Primeira Parcela</p>
               <p className="text-lg font-semibold">{formatCurrency(simulation.firstPayment)}</p>
@@ -74,51 +130,48 @@ function SimulationModal({ simulation, onClose }: { simulation: SavedSimulation;
               <p className="text-sm font-medium mb-1 opacity-90">Última Parcela</p>
               <p className="text-lg font-semibold">{formatCurrency(simulation.lastPayment)}</p>
             </div>
-          </div>
-
-          <div className="grid grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
-            <div>
-              <p className="text-sm text-gray-500">Sistema</p>
-              <p className="font-medium text-gray-900">{simulation.type}</p>
+            <div className="bg-blue-600 p-4 rounded-xl text-white">
+              <p className="text-sm font-medium mb-1 opacity-90">Taxa Mensal</p>
+              <p className="text-lg font-semibold">{simulation.monthlyRate}%</p>
             </div>
-            <div>
-              <p className="text-sm text-gray-500">Banco</p>
-              <p className="font-medium text-gray-900">{simulation.bank || 'Não informado'}</p>
+            <div className="bg-blue-600 p-4 rounded-xl text-white">
+              <p className="text-sm font-medium mb-1 opacity-90">Prazo</p>
+              <p className="text-lg font-semibold">{simulation.months} meses</p>
             </div>
-            <div>
-              <p className="text-sm text-gray-500">Taxa Mensal</p>
-              <p className="font-medium text-gray-900">{simulation.monthlyRate}%</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Prazo</p>
-              <p className="font-medium text-gray-900">{simulation.months} meses</p>
+            <div className="bg-blue-600 p-4 rounded-xl text-white">
+              <p className="text-sm font-medium mb-1 opacity-90">Sistema</p>
+              <p className="text-lg font-semibold">{simulation.type}</p>
             </div>
           </div>
 
           <div className="flex justify-between items-center">
             <h4 className="text-lg font-semibold text-gray-800">Parcelas</h4>
-            <button
-              onClick={() => setShowInstallments(!showInstallments)}
-              className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
-            >
-              {showInstallments ? (
-                <>
-                  <Eye size={16} className="mr-2" />
-                  Ocultar Parcelas
-                </>
-              ) : (
-                <>
-                  <Eye size={16} className="mr-2" />
-                  Exibir Parcelas
-                </>
-              )}
-            </button>
+            {hasInstallments && (
+              <button
+                onClick={() => setShowInstallments(!showInstallments)}
+                className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+              >
+                {showInstallments ? (
+                  <>
+                    <EyeOff size={16} className="mr-2" />
+                    Ocultar Parcelas
+                  </>
+                ) : (
+                  <>
+                    <Eye size={16} className="mr-2" />
+                    Exibir Parcelas
+                  </>
+                )}
+              </button>
+            )}
           </div>
+        </div>
 
-          {showInstallments && (
-            <div className="overflow-x-auto rounded-xl border border-gray-200">
+        {hasInstallments && showInstallments && (
+          <div className="flex-1 overflow-hidden px-6 pb-6">
+            <div className="h-full overflow-auto rounded-xl border border-gray-200">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 sticky top-0">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Nº
@@ -141,17 +194,33 @@ function SimulationModal({ simulation, onClose }: { simulation: SavedSimulation;
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {/* Placeholder for installments data */}
-                  <tr>
-                    <td className="px-6 py-4 text-sm text-gray-500" colSpan={6}>
-                      Dados das parcelas não disponíveis para simulações salvas
-                    </td>
-                  </tr>
+                  {simulation.installments.map((installment, index) => (
+                    <tr key={index}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {installment.number}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {installment.date}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatCurrency(installment.payment)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatCurrency(installment.amortization)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatCurrency(installment.interest)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatCurrency(installment.balance)}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -161,6 +230,7 @@ function SimulationHistory() {
   const [simulations, setSimulations] = React.useState<SavedSimulation[]>([]);
   const [filter, setFilter] = useState<FilterType>('ALL');
   const [selectedSimulation, setSelectedSimulation] = useState<SavedSimulation | null>(null);
+  const [showNotification, setShowNotification] = useState(false);
 
   React.useEffect(() => {
     const savedSimulations = localStorage.getItem('simulations');
@@ -173,6 +243,7 @@ function SimulationHistory() {
     const updatedSimulations = simulations.filter(sim => sim.id !== id);
     setSimulations(updatedSimulations);
     localStorage.setItem('simulations', JSON.stringify(updatedSimulations));
+    setShowNotification(true);
   };
 
   const formatCurrency = (value: number) => {
@@ -205,6 +276,13 @@ function SimulationHistory() {
 
   return (
     <div className="max-w-6xl mx-auto">
+      {showNotification && (
+        <Notification
+          message="Simulação excluída com sucesso!"
+          onClose={() => setShowNotification(false)}
+        />
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Simulações Salvas</h2>
         <div className="flex gap-2">
@@ -259,6 +337,9 @@ function SimulationHistory() {
                   Valor Financiado
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Entrada
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Prazo
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -292,6 +373,9 @@ function SimulationHistory() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatCurrency(simulation.financingAmount)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {formatCurrency(simulation.downPayment)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {simulation.months} meses

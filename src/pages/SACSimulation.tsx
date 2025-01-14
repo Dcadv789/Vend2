@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Save, Eye, EyeOff } from 'lucide-react';
+import { Notification } from '../components/Notification';
 
 interface Installment {
   number: number;
@@ -10,7 +11,7 @@ interface Installment {
   balance: number;
 }
 
-function SACSimulation() {
+export default function SACSimulation() {
   const [financingAmount, setFinancingAmount] = useState('');
   const [downPayment, setDownPayment] = useState('');
   const [operationDate, setOperationDate] = useState('');
@@ -23,8 +24,10 @@ function SACSimulation() {
   const [showInstallments, setShowInstallments] = useState(true);
   const [installments, setInstallments] = useState<Installment[]>([]);
   const [totals, setTotals] = useState({ payment: 0, amortization: 0, interest: 0 });
+  const [showNotification, setShowNotification] = useState(false);
 
   const financedAmount = Number(financingAmount) - Number(downPayment);
+  const totalPurchaseAmount = Number(financingAmount);
 
   const calculateSAC = () => {
     const principal = financedAmount;
@@ -87,15 +90,16 @@ function SACSimulation() {
       bank,
       firstPayment: installments[0].payment,
       lastPayment: installments[installments.length - 1].payment,
-      totalAmount: totals.payment,
-      totalInterest: totals.interest
+      totalAmount: totals.payment + Number(downPayment),
+      totalInterest: totals.interest,
+      installments: installments
     };
 
     const savedSimulations = localStorage.getItem('simulations');
     const simulations = savedSimulations ? JSON.parse(savedSimulations) : [];
     simulations.push(simulation);
     localStorage.setItem('simulations', JSON.stringify(simulations));
-    alert('Simulação salva com sucesso!');
+    setShowNotification(true);
   };
 
   const toggleInstallments = () => {
@@ -123,6 +127,13 @@ function SACSimulation() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      {showNotification && (
+        <Notification
+          message="Simulação salva com sucesso!"
+          onClose={() => setShowNotification(false)}
+        />
+      )}
+
       <div>
         <h2 className="text-2xl font-bold text-gray-800 mb-2">Tabela SAC</h2>
         <p className="text-gray-600">
@@ -140,7 +151,7 @@ function SACSimulation() {
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Valor do Financiamento
+                Valor Total do Bem
               </label>
               <input
                 type="number"
@@ -152,7 +163,7 @@ function SACSimulation() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Entrada
+                Valor da Entrada
               </label>
               <input
                 type="number"
@@ -164,7 +175,7 @@ function SACSimulation() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Saldo a Financiar
+                Valor a Financiar
               </label>
               <input
                 type="text"
@@ -249,7 +260,7 @@ function SACSimulation() {
 
           <button
             onClick={handleCalculate}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700  transition-colors font-medium"
           >
             Calcular
           </button>
@@ -268,19 +279,43 @@ function SACSimulation() {
                   Detalhamento da simulação do financiamento
                 </p>
               </div>
-              <div className="grid grid-cols-5 gap-4">
-                <div className="bg-blue-600 p-4 rounded-xl text-white">
-                  <p className="text-sm font-medium mb-1 opacity-90">Valor Total</p>
-                  <p className="text-lg font-semibold">{formatCurrency(totals.payment)}</p>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">Valores da Compra</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Valor Total do Bem:</span>
+                      <span className="font-medium">{formatCurrency(totalPurchaseAmount)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Valor da Entrada:</span>
+                      <span className="font-medium text-green-600">{formatCurrency(Number(downPayment))}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Valor Financiado:</span>
+                      <span className="font-medium">{formatCurrency(financedAmount)}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-blue-600 p-4 rounded-xl text-white">
-                  <p className="text-sm font-medium mb-1 opacity-90">Total de Juros</p>
-                  <p className="text-lg font-semibold">{formatCurrency(totals.interest)}</p>
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">Custos do Financiamento</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Total de Juros:</span>
+                      <span className="font-medium text-red-600">{formatCurrency(totals.interest)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Custo Total do Financiamento:</span>
+                      <span className="font-medium">{formatCurrency(totals.payment)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Custo Total (com entrada):</span>
+                      <span className="font-medium">{formatCurrency(totals.payment + Number(downPayment))}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-blue-600 p-4 rounded-xl text-white">
-                  <p className="text-sm font-medium mb-1 opacity-90">Total Amortizado</p>
-                  <p className="text-lg font-semibold">{formatCurrency(totals.amortization)}</p>
-                </div>
+              </div>
+              <div className="grid grid-cols-4 gap-4">
                 <div className="bg-blue-600 p-4 rounded-xl text-white">
                   <p className="text-sm font-medium mb-1 opacity-90">Primeira Parcela</p>
                   <p className="text-lg font-semibold">
@@ -292,6 +327,14 @@ function SACSimulation() {
                   <p className="text-lg font-semibold">
                     {installments.length > 0 ? formatCurrency(installments[installments.length - 1].payment) : '-'}
                   </p>
+                </div>
+                <div className="bg-blue-600 p-4 rounded-xl text-white">
+                  <p className="text-sm font-medium mb-1 opacity-90">Total Amortizado</p>
+                  <p className="text-lg font-semibold">{formatCurrency(totals.amortization)}</p>
+                </div>
+                <div className="bg-blue-600 p-4 rounded-xl text-white">
+                  <p className="text-sm font-medium mb-1 opacity-90">Prazo</p>
+                  <p className="text-lg font-semibold">{months} meses</p>
                 </div>
               </div>
             </div>
@@ -393,5 +436,3 @@ function SACSimulation() {
     </div>
   );
 }
-
-export default SACSimulation;

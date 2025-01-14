@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Save, Eye, EyeOff } from 'lucide-react';
+import { Notification } from '../components/Notification';
 
 interface Installment {
   number: number;
@@ -10,7 +11,7 @@ interface Installment {
   balance: number;
 }
 
-function PriceSimulation() {
+export default function PriceSimulation() {
   const [financingAmount, setFinancingAmount] = useState('');
   const [downPayment, setDownPayment] = useState('');
   const [operationDate, setOperationDate] = useState('');
@@ -23,8 +24,10 @@ function PriceSimulation() {
   const [showInstallments, setShowInstallments] = useState(true);
   const [installments, setInstallments] = useState<Installment[]>([]);
   const [totals, setTotals] = useState({ payment: 0, amortization: 0, interest: 0 });
+  const [showNotification, setShowNotification] = useState(false);
 
   const financedAmount = Number(financingAmount) - Number(downPayment);
+  const totalPurchaseAmount = Number(financingAmount);
 
   const calculatePrice = () => {
     const principal = financedAmount;
@@ -32,7 +35,6 @@ function PriceSimulation() {
     const term = Number(months);
     const firstDate = new Date(firstPaymentDate);
     
-    // Cálculo da parcela usando a fórmula Price
     const payment = principal * (rate * Math.pow(1 + rate, term)) / (Math.pow(1 + rate, term) - 1);
     
     let currentBalance = principal;
@@ -89,15 +91,16 @@ function PriceSimulation() {
       bank,
       firstPayment: installments[0].payment,
       lastPayment: installments[installments.length - 1].payment,
-      totalAmount: totals.payment,
-      totalInterest: totals.interest
+      totalAmount: totals.payment + Number(downPayment),
+      totalInterest: totals.interest,
+      installments: installments
     };
 
     const savedSimulations = localStorage.getItem('simulations');
     const simulations = savedSimulations ? JSON.parse(savedSimulations) : [];
     simulations.push(simulation);
     localStorage.setItem('simulations', JSON.stringify(simulations));
-    alert('Simulação salva com sucesso!');
+    setShowNotification(true);
   };
 
   const toggleInstallments = () => {
@@ -125,6 +128,13 @@ function PriceSimulation() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      {showNotification && (
+        <Notification
+          message="Simulação salva com sucesso!"
+          onClose={() => setShowNotification(false)}
+        />
+      )}
+
       <div>
         <h2 className="text-2xl font-bold text-gray-800 mb-2">Tabela Price</h2>
         <p className="text-gray-600">
@@ -142,7 +152,7 @@ function PriceSimulation() {
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Valor do Financiamento
+                Valor Total do Bem
               </label>
               <input
                 type="number"
@@ -154,7 +164,7 @@ function PriceSimulation() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Entrada
+                Valor da Entrada
               </label>
               <input
                 type="number"
@@ -166,7 +176,7 @@ function PriceSimulation() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Saldo a Financiar
+                Valor a Financiar
               </label>
               <input
                 type="text"
@@ -270,30 +280,60 @@ function PriceSimulation() {
                   Detalhamento da simulação do financiamento
                 </p>
               </div>
-              <div className="grid grid-cols-5 gap-4">
-                <div className="bg-blue-600 p-4 rounded-xl text-white">
-                  <p className="text-sm font-medium mb-1 opacity-90">Valor Total</p>
-                  <p className="text-lg font-semibold">{formatCurrency(totals.payment)}</p>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">Valores da Compra</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Valor Total do Bem:</span>
+                      <span className="font-medium">{formatCurrency(totalPurchaseAmount)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Valor da Entrada:</span>
+                      <span className="font-medium text-green-600">{formatCurrency(Number(downPayment))}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Valor Financiado:</span>
+                      <span className="font-medium">{formatCurrency(financedAmount)}</span>
+                    </div>
+                  </div>
                 </div>
-                 <div className="bg-blue-600 p-4 rounded-xl text-white">
-                  <p className="text-sm font-medium mb-1 opacity-90">Total de Juros</p>
-                  <p className="text-lg font-semibold">{formatCurrency(totals.interest)}</p>
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">Custos do Financiamento</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Total de Juros:</span>
+                      <span className="font-medium text-red-600">{formatCurrency(totals.interest)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Custo Total do Financiamento:</span>
+                      <span className="font-medium">{formatCurrency(totals.payment)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Custo Total (com entrada):</span>
+                      <span className="font-medium">{formatCurrency(totals.payment + Number(downPayment))}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="bg-blue-600 p-4 rounded-xl text-white">
+                  <p className="text-sm font-medium mb-1 opacity-90">Parcela Fixa</p>
+                  <p className="text-lg font-semibold">
+                    {installments.length > 0 ? formatCurrency(installments[0].payment) : '-'}
+                  </p>
                 </div>
                 <div className="bg-blue-600 p-4 rounded-xl text-white">
                   <p className="text-sm font-medium mb-1 opacity-90">Total Amortizado</p>
                   <p className="text-lg font-semibold">{formatCurrency(totals.amortization)}</p>
                 </div>
                 <div className="bg-blue-600 p-4 rounded-xl text-white">
-                  <p className="text-sm font-medium mb-1 opacity-90">Primeira Parcela</p>
-                  <p className="text-lg font-semibold">
-                    {installments.length > 0 ? formatCurrency(installments[0].payment) : '-'}
-                  </p>
+                  <p className="text-sm font-medium mb-1 opacity-90">Prazo</p>
+                  <p className="text-lg font-semibold">{months} meses</p>
                 </div>
                 <div className="bg-blue-600 p-4 rounded-xl text-white">
-                  <p className="text-sm font-medium mb-1 opacity-90">Última Parcela</p>
-                  <p className="text-lg font-semibold">
-                    {installments.length > 0 ? formatCurrency(installments[installments.length - 1].payment) : '-'}
-                  </p>
+                  <p className="text-sm font-medium mb-1 opacity-90">Taxa Efetiva Anual</p>
+                  <p className="text-lg font-semibold">{yearlyRate}%</p>
                 </div>
               </div>
             </div>
@@ -395,5 +435,3 @@ function PriceSimulation() {
     </div>
   );
 }
-
-export default PriceSimulation;
