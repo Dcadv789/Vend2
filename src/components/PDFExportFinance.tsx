@@ -5,7 +5,8 @@ const styles = StyleSheet.create({
   page: {
     padding: 0,
     fontFamily: 'Helvetica',
-    backgroundColor: '#F8FAFC'
+    backgroundColor: '#F8FAFC',
+    position: 'relative'
   },
   header: {
     backgroundColor: '#1E40AF',
@@ -65,7 +66,8 @@ const styles = StyleSheet.create({
     height: 80
   },
   content: {
-    padding: 30
+    padding: 30,
+    paddingBottom: 90
   },
   simulationsContainer: {
     flexDirection: 'row',
@@ -126,7 +128,7 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0'
   },
   comparisonTitle: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#1E293B',
     marginBottom: 15,
@@ -416,7 +418,7 @@ const PDFExportFinance: React.FC<PDFExportFinanceProps> = ({
                     </View>
                     <View style={styles.recommendationColumn}>
                       <Text style={styles.recommendationHighlightText}>
-                        3. Condições específicas oferecidas por cada banco{'\n'}
+                        3. Condições oferecidas por cada banco{'\n'}
                         4. Possibilidade de pagamentos antecipados
                       </Text>
                     </View>
@@ -486,6 +488,10 @@ const PDFExportFinance: React.FC<PDFExportFinanceProps> = ({
             })}
           </View>
         </View>
+
+        <Text style={styles.footer}>
+          Copyright ® 2025 DC ADVISORS - Todos os direitos reservados
+        </Text>
       </Page>
     </Document>
   );
