@@ -387,7 +387,7 @@ const PDFExportFinance: React.FC<PDFExportFinanceProps> = ({
                 </Text>
               </View>
               <View style={styles.comparisonCard}>
-                <Text style={styles.comparisonCardTitle}>Diferença na Primeira Parcela</Text>
+                <Text style={styles.comparisonCardTitle}>Diferença na parcela 1</Text>
                 <Text style={styles.comparisonCardValue}>
                   {formatCurrency(Math.abs(metrics.monthlyPaymentDiff))}
                 </Text>
