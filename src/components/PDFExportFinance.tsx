@@ -81,8 +81,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0'
   },
   simulationHeader: {
-    marginBottom: 15,
-    paddingBottom: 10,
+    marginBottom: 12,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0'
   },
@@ -94,8 +94,9 @@ const styles = StyleSheet.create({
   dataRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
-    paddingVertical: 4
+    marginBottom: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 8
   },
   label: {
     fontSize: 10,
@@ -170,7 +171,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: '#E2E8F0',
+    width: '100%'
   },
   recommendationHeader: {
     flexDirection: 'row',
@@ -219,16 +221,6 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: '#E2E8F0'
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0'
-  },
-  tableRow: {
-    flexDirection: 'row',
-    paddingVertical: 8
   }
 });
 
@@ -404,50 +396,56 @@ const PDFExportFinance: React.FC<PDFExportFinanceProps> = ({
             </View>
           </View>
 
-          <View style={styles.recommendationContainer}>
-            <View style={styles.recommendationSection}>
-              <View style={styles.recommendationHeader}>
-                <Text style={styles.recommendationTitle}>Recomendação</Text>
-              </View>
-              {getBetterOption() === 'empate' ? (
-                <>
-                  <Text style={styles.recommendationText}>
-                    As simulações são equivalentes em termos financeiros. 
-                    Considere os seguintes aspectos para sua decisão:
-                  </Text>
-                  <View style={styles.recommendationHighlight}>
-                    <Text style={styles.recommendationHighlightText}>
-                      1. Sua disponibilidade financeira mensal{'\n'}
-                      2. Preferência pelo sistema de amortização{'\n'}
-                      3. Condições específicas oferecidas por cada banco{'\n'}
-                      4. Possibilidade de pagamentos antecipados
-                    </Text>
-                  </View>
-                </>
-              ) : (
-                <>
-                  <Text style={styles.recommendationText}>
-                    A Simulação {getBetterOption()} apresenta condições mais vantajosas:
-                  </Text>
-                  <View style={styles.recommendationHighlight}>
-                    <View style={styles.recommendationColumns}>
-                      <View style={styles.recommendationColumn}>
-                        <Text style={styles.recommendationHighlightText}>
-                          1. Menor custo total de financiamento{'\n'}
-                          2. Melhor distribuição das parcelas
-                        </Text>
-                      </View>
-                      <View style={styles.recommendationColumn}>
-                        <Text style={styles.recommendationHighlightText}>
-                          3. Menor incidência de juros{'\n'}
-                          4. Melhor relação custo-benefício
-                        </Text>
-                      </View>
+          <View style={styles.recommendationSection}>
+            <View style={styles.recommendationHeader}>
+              <Text style={styles.recommendationTitle}>Recomendação</Text>
+            </View>
+            {getBetterOption() === 'empate' ? (
+              <>
+                <Text style={styles.recommendationText}>
+                  As simulações são equivalentes em termos financeiros. 
+                  Considere os seguintes aspectos para sua decisão:
+                </Text>
+                <View style={styles.recommendationHighlight}>
+                  <View style={styles.recommendationColumns}>
+                    <View style={styles.recommendationColumn}>
+                      <Text style={styles.recommendationHighlightText}>
+                        1. Sua disponibilidade financeira mensal{'\n'}
+                        2. Preferência pelo sistema de amortização
+                      </Text>
+                    </View>
+                    <View style={styles.recommendationColumn}>
+                      <Text style={styles.recommendationHighlightText}>
+                        3. Condições específicas oferecidas por cada banco{'\n'}
+                        4. Possibilidade de pagamentos antecipados
+                      </Text>
                     </View>
                   </View>
-                </>
-              )}
-            </View>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={styles.recommendationText}>
+                  A Simulação {getBetterOption()} apresenta condições mais vantajosas:
+                </Text>
+                <View style={styles.recommendationHighlight}>
+                  <View style={styles.recommendationColumns}>
+                    <View style={styles.recommendationColumn}>
+                      <Text style={styles.recommendationHighlightText}>
+                        1. Menor custo total de financiamento{'\n'}
+                        2. Melhor distribuição das parcelas
+                      </Text>
+                    </View>
+                    <View style={styles.recommendationColumn}>
+                      <Text style={styles.recommendationHighlightText}>
+                        3. Menor incidência de juros{'\n'}
+                        4. Melhor relação custo-benefício
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </>
+            )}
           </View>
 
           <Text style={styles.footer}>
