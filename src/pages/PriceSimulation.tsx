@@ -31,8 +31,9 @@ export default function PriceSimulation() {
   const [totals, setTotals] = useState({ payment: 0, amortization: 0, interest: 0 });
   const [showNotification, setShowNotification] = useState(false);
 
-  const financedAmount = Number(financingAmount) / 100 - Number(downPayment) / 100;
   const totalPurchaseAmount = Number(financingAmount) / 100;
+  const downPaymentValue = Number(downPayment) / 100;
+  const financedAmount = totalPurchaseAmount - downPaymentValue;
 
   const formatInputCurrency = (value: string) => {
     if (!value) return 'R$ 0,00';
@@ -109,14 +110,14 @@ export default function PriceSimulation() {
       id: Date.now().toString(),
       type: 'PRICE' as const,
       date: new Date().toLocaleDateString('pt-BR'),
-      financingAmount: Number(financingAmount) / 100,
-      downPayment: Number(downPayment) / 100,
+      financingAmount: totalPurchaseAmount,
+      downPayment: downPaymentValue,
       months: Number(months),
       monthlyRate: Number(monthlyRate),
       bank,
       firstPayment: installments[0].payment,
       lastPayment: installments[installments.length - 1].payment,
-      totalAmount: totals.payment + Number(downPayment) / 100,
+      totalAmount: totals.payment + downPaymentValue,
       totalInterest: totals.interest,
       installments: installments
     };
@@ -326,7 +327,7 @@ export default function PriceSimulation() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Valor da Entrada:</span>
-                      <span className="font-medium text-green-600">{formatCurrency(Number(downPayment) / 100)}</span>
+                      <span className="font-medium text-green-600">{formatCurrency(downPaymentValue)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Valor Financiado:</span>
@@ -347,16 +348,22 @@ export default function PriceSimulation() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Custo Total (com entrada):</span>
-                      <span className="font-medium">{formatCurrency(totals.payment + Number(downPayment) / 100)}</span>
+                      <span className="font-medium">{formatCurrency(totals.payment + downPaymentValue)}</span>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-4 gap-4">
                 <div className="bg-blue-600 p-4 rounded-xl text-white">
-                  <p className="text-sm font-medium mb-1 opacity-90">Parcela Fixa</p>
+                  <p className="text-sm font-medium mb-1 opacity-90">Primeira Parcela</p>
                   <p className="text-lg font-semibold">
                     {installments.length > 0 ? formatCurrency(installments[0].payment) : '-'}
+                  </p>
+                </div>
+                <div className="bg-blue-600 p-4 rounded-xl text-white">
+                  <p className="text-sm font-medium mb-1 opacity-90">Última Parcela</p>
+                  <p className="text-lg font-semibold">
+                    {installments.length > 0 ? formatCurrency(installments[installments.length - 1].payment) : '-'}
                   </p>
                 </div>
                 <div className="bg-blue-600 p-4 rounded-xl text-white">
@@ -366,10 +373,6 @@ export default function PriceSimulation() {
                 <div className="bg-blue-600 p-4 rounded-xl text-white">
                   <p className="text-sm font-medium mb-1 opacity-90">Prazo</p>
                   <p className="text-lg font-semibold">{months} meses</p>
-                </div>
-                <div className="bg-blue-600 p-4 rounded-xl text-white">
-                  <p className="text-sm font-medium mb-1 opacity-90">Taxa Efetiva Anual</p>
-                  <p className="text-lg font-semibold">{yearlyRate}%</p>
                 </div>
               </div>
             </div>

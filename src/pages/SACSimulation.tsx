@@ -31,8 +31,9 @@ export default function SACSimulation() {
   const [totals, setTotals] = useState({ payment: 0, amortization: 0, interest: 0 });
   const [showNotification, setShowNotification] = useState(false);
 
-  const financedAmount = Number(financingAmount) / 100 - Number(downPayment) / 100;
   const totalPurchaseAmount = Number(financingAmount) / 100;
+  const downPaymentValue = Number(downPayment) / 100;
+  const financedAmount = totalPurchaseAmount - downPaymentValue;
 
   const formatInputCurrency = (value: string) => {
     if (!value) return 'R$ 0,00';
@@ -108,14 +109,14 @@ export default function SACSimulation() {
       id: Date.now().toString(),
       type: 'SAC' as const,
       date: new Date().toLocaleDateString('pt-BR'),
-      financingAmount: Number(financingAmount) / 100,
-      downPayment: Number(downPayment) / 100,
+      financingAmount: totalPurchaseAmount,
+      downPayment: downPaymentValue,
       months: Number(months),
       monthlyRate: Number(monthlyRate),
       bank,
       firstPayment: installments[0].payment,
       lastPayment: installments[installments.length - 1].payment,
-      totalAmount: totals.payment + Number(downPayment) / 100,
+      totalAmount: totals.payment + downPaymentValue,
       totalInterest: totals.interest,
       installments: installments
     };
@@ -325,7 +326,7 @@ export default function SACSimulation() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Valor da Entrada:</span>
-                      <span className="font-medium text-green-600">{formatCurrency(Number(downPayment) / 100)}</span>
+                      <span className="font-medium text-green-600">{formatCurrency(downPaymentValue)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Valor Financiado:</span>
@@ -346,7 +347,7 @@ export default function SACSimulation() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Custo Total (com entrada):</span>
-                      <span className="font-medium">{formatCurrency(totals.payment + Number(downPayment) / 100)}</span>
+                      <span className="font-medium">{formatCurrency(totals.payment + downPaymentValue)}</span>
                     </div>
                   </div>
                 </div>
