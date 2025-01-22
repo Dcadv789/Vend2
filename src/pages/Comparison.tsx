@@ -281,7 +281,7 @@ const ComparisonPDF = ({ selectedSimA, selectedSimB, metrics, getBetterOption, f
               <Text style={styles.tableCell}>{formatCurrency(installment.payment)}</Text>
               <Text style={styles.tableCell}>{formatCurrency(selectedSimB.installments[index].payment)}</Text>
               <Text style={styles.tableCell}>
-                {formatCurrency(Math.abs(diff))} {diff > 0 ? 'mais cara' : 'mais barata'}
+                {formatCurrency(Math.abs(diff))} - Opção {diff > 0 ? 'B' : 'A'} mais econômica
               </Text>
             </View>
           );
@@ -504,6 +504,10 @@ function Comparison() {
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Taxa de Juros:</span>
+                      <span className="font-semibold text-gray-800">{selectedSimA.monthlyRate}% a.m.</span>
+                    </div>
+                    <div className="flex justify-between items-center">
                       <span className="text-gray-600">Primeira Parcela:</span>
                       <span className="font-semibold text-gray-800">{formatCurrency(selectedSimA.firstPayment)}</span>
                     </div>
@@ -545,6 +549,10 @@ function Comparison() {
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Taxa de Juros:</span>
+                      <span className="font-semibold text-gray-800">{selectedSimB.monthlyRate}% a.m.</span>
+                    </div>
+                    <div className="flex justify-between items-center">
                       <span className="text-gray-600">Primeira Parcela:</span>
                       <span className="font-semibold text-gray-800">{formatCurrency(selectedSimB.firstPayment)}</span>
                     </div>
@@ -566,7 +574,7 @@ function Comparison() {
                   <div className="flex items-center justify-between">
                     <span className="text-blue-800">{formatCurrency(Math.abs(metrics.totalInterestDiff))}</span>
                     <span className="text-sm font-medium text-green-600">
-                      {metrics.totalInterestDiff > 0 ? 'B mais econômico' : 'A mais econômico'}
+                      Opção {metrics.totalInterestDiff > 0 ? 'B' : 'A'} mais econômica
                     </span>
                   </div>
                 </div>
@@ -576,7 +584,7 @@ function Comparison() {
                   <div className="flex items-center justify-between">
                     <span className="text-blue-800">{formatCurrency(Math.abs(metrics.totalAmountDiff))}</span>
                     <span className="text-sm font-medium text-green-600">
-                      {metrics.totalAmountDiff > 0 ? 'B mais econômico' : 'A mais econômico'}
+                      Opção {metrics.totalAmountDiff > 0 ? 'B' : 'A'} mais econômica
                     </span>
                   </div>
                 </div>
@@ -586,7 +594,7 @@ function Comparison() {
                   <div className="flex items-center justify-between">
                     <span className="text-blue-800">{formatCurrency(Math.abs(metrics.monthlyPaymentDiff))}</span>
                     <span className="text-sm font-medium text-green-600">
-                      {metrics.monthlyPaymentDiff > 0 ? 'B mais baixa' : 'A mais baixa'}
+                      Opção {metrics.monthlyPaymentDiff > 0 ? 'B' : 'A'} mais econômica
                     </span>
                   </div>
                 </div>
@@ -662,8 +670,7 @@ function Comparison() {
                           <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Simulação A
                            </th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Simulação B
+                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"> Simulação B
                           </th>
                           <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Diferença
@@ -691,10 +698,7 @@ function Comparison() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`text-sm ${diff > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                  {formatCurrency(Math.abs(diff))}
-                                  <span className="text-gray-500 ml-1">
-                                    {diff > 0 ? 'mais cara' : 'mais barata'}
-                                  </span>
+                                  {formatCurrency(Math.abs(diff))} - Opção {diff > 0 ? 'B' : 'A'} mais econômica
                                 </span>
                               </td>
                             </tr>
