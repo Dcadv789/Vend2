@@ -671,7 +671,7 @@ function Comparison() {
                             Simulação A
                            </th>
                           <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"> Simulação B
-                          </th>
+                 </th>
                           <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Diferença
                           </th>
@@ -697,7 +697,7 @@ function Comparison() {
                                 {formatCurrency(installmentB.payment)}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`text-sm ${diff > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                <span className="text-sm text-green-600">
                                   {formatCurrency(Math.abs(diff))} - Opção {diff > 0 ? 'B' : 'A'} mais econômica
                                 </span>
                               </td>
