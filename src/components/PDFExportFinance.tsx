@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0'
   },
   comparisonCardTitle: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#64748B',
     marginBottom: 3
   },
@@ -164,8 +164,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 17,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    marginBottom: 40
+    borderColor: '#E2E8F0'
   },
   recommendationHeader: {
     flexDirection: 'row',
@@ -203,6 +202,47 @@ const styles = StyleSheet.create({
     color: '#166534',
     lineHeight: 1.4
   },
+  table: {
+    display: 'table',
+    width: 'auto',
+    marginBottom: 10,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 4
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    minHeight: 25,
+    alignItems: 'center'
+  },
+  tableHeader: {
+    backgroundColor: '#F8FAFC'
+  },
+  tableCell: {
+    padding: 5,
+    fontSize: 9
+  },
+  numberCell: {
+    width: '8%',
+    borderRightWidth: 1,
+    borderRightColor: '#E2E8F0'
+  },
+  dateCell: {
+    width: '15%',
+    borderRightWidth: 1,
+    borderRightColor: '#E2E8F0'
+  },
+  valueCell: {
+    width: '22%',
+    borderRightWidth: 1,
+    borderRightColor: '#E2E8F0'
+  },
+  diffCell: {
+    width: '33%'
+  },
   footer: {
     position: 'absolute',
     bottom: 23,
@@ -214,40 +254,6 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: '#E2E8F0'
-  },
-  table: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 4,
-    marginBottom: 20
-  },
-  tableHeader: {
-    backgroundColor: '#F8FAFC',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-    flexDirection: 'row'
-  },
-  tableHeaderCell: {
-    padding: 8,
-    flex: 1,
-    fontSize: 10,
-    color: '#64748B',
-    fontWeight: 'bold'
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0'
-  },
-  tableCell: {
-    padding: 8,
-    flex: 1,
-    fontSize: 10,
-    color: '#1E293B'
-  },
-  lastTableRow: {
-    flexDirection: 'row'
   }
 });
 
@@ -297,32 +303,48 @@ const PDFExportFinance: React.FC<PDFExportFinanceProps> = ({
     </View>
   );
 
-  const renderInstallmentsTable = (installments: any[], startIndex: number, endIndex: number) => (
+  const renderInstallmentsTable = (startIndex: number, endIndex: number) => (
     <View style={styles.table}>
-      <View style={styles.tableHeader}>
-        <Text style={[styles.tableHeaderCell, { flex: 0.5 }]}>Nº</Text>
-        <Text style={styles.tableHeaderCell}>Data</Text>
-        <Text style={styles.tableHeaderCell}>Simulação A</Text>
-        <Text style={styles.tableHeaderCell}>Simulação B</Text>
-        <Text style={styles.tableHeaderCell}>Diferença</Text>
+      <View style={[styles.tableRow, styles.tableHeader]}>
+        <View style={[styles.tableCell, styles.numberCell]}>
+          <Text>Nº</Text>
+        </View>
+        <View style={[styles.tableCell, styles.dateCell]}>
+          <Text>Data</Text>
+        </View>
+        <View style={[styles.tableCell, styles.valueCell]}>
+          <Text>Simulação A</Text>
+        </View>
+        <View style={[styles.tableCell, styles.valueCell]}>
+          <Text>Simulação B</Text>
+        </View>
+        <View style={[styles.tableCell, styles.diffCell]}>
+          <Text>Diferença</Text>
+        </View>
       </View>
-      {installments.slice(startIndex, endIndex).map((_, index) => {
+      {Array.from({ length: endIndex - startIndex }).map((_, index) => {
         const currentIndex = startIndex + index;
         const installmentA = selectedSimA.installments[currentIndex] || { number: currentIndex + 1, date: '-', payment: 0 };
         const installmentB = selectedSimB.installments[currentIndex] || { number: currentIndex + 1, date: '-', payment: 0 };
         const diff = installmentA.payment - installmentB.payment;
 
         return (
-          <View style={currentIndex === endIndex - 1 ? styles.lastTableRow : styles.tableRow} key={currentIndex}>
-            <Text style={[styles.tableCell, { flex: 0.5 }]}>{currentIndex + 1}</Text>
-            <Text style={styles.tableCell}>
-              {installmentA.date !== '-' ? installmentA.date : installmentB.date}
-            </Text>
-            <Text style={styles.tableCell}>{formatCurrency(installmentA.payment)}</Text>
-            <Text style={styles.tableCell}>{formatCurrency(installmentB.payment)}</Text>
-            <Text style={styles.tableCell}>
-              {formatCurrency(Math.abs(diff))} - Opção {diff > 0 ? 'B' : 'A'} mais econômica
-            </Text>
+          <View style={styles.tableRow} key={currentIndex}>
+            <View style={[styles.tableCell, styles.numberCell]}>
+              <Text>{currentIndex + 1}</Text>
+            </View>
+            <View style={[styles.tableCell, styles.dateCell]}>
+              <Text>{installmentA.date !== '-' ? installmentA.date : installmentB.date}</Text>
+            </View>
+            <View style={[styles.tableCell, styles.valueCell]}>
+              <Text>{formatCurrency(installmentA.payment)}</Text>
+            </View>
+            <View style={[styles.tableCell, styles.valueCell]}>
+              <Text>{formatCurrency(installmentB.payment)}</Text>
+            </View>
+            <View style={[styles.tableCell, styles.diffCell]}>
+              <Text>{formatCurrency(Math.abs(diff))} - Opção {diff > 0 ? 'B' : 'A'} mais econômica</Text>
+            </View>
           </View>
         );
       })}
@@ -514,21 +536,17 @@ const PDFExportFinance: React.FC<PDFExportFinanceProps> = ({
       <Page size="A4" style={styles.page}>
         {renderHeader('Evolução das Parcelas')}
         <View style={styles.content}>
-          {renderInstallmentsTable(selectedSimA.installments, 0, 20)}
+          {renderInstallmentsTable(0, 20)}
         </View>
         <Text style={styles.footer}>
           Copyright ® 2025 DC ADVISORS - Todos os direitos reservados
         </Text>
       </Page>
 
-      {Array.from({ length: pages - 1 }).map((_, index) => (
+      {Array.from({ length: pages - 2 }).map((_, index) => (
         <Page key={index} size="A4" style={styles.page}>
           <View style={styles.content}>
-            {renderInstallmentsTable(
-              selectedSimA.installments,
-              20 + index * 25,
-              Math.min(20 + (index + 1) * 25, totalInstallments)
-            )}
+            {renderInstallmentsTable(20 + (index * 25), Math.min(20 + ((index + 1) * 25), totalInstallments))}
           </View>
           <Text style={styles.footer}>
             Copyright ® 2025 DC ADVISORS - Todos os direitos reservados
