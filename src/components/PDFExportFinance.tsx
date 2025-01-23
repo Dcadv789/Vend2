@@ -17,84 +17,84 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#1E40AF',
-    padding: 20,
-    paddingBottom: 10,
+    padding: 23,
+    paddingBottom: 12,
     flexDirection: 'column',
-    height: 120
+    height: 131
   },
   headerContent: {
     flex: 1,
     marginRight: 100,
     marginTop: 0,
     position: 'relative',
-    top: 10
+    top: 8
   },
   headerTitle: {
     color: '#FFFFFF',
-    fontSize: 26,
-    marginBottom: 10
+    fontSize: 22,
+    marginBottom: 12
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
     gap: 140,
     position: 'absolute',
-    bottom: 17
+    bottom: 22
   },
   headerColumn: {
     flex: 1
   },
   headerLabel: {
     color: '#93C5FD',
-    fontSize: 11,
+    fontSize: 13,
     marginBottom: 2
   },
   headerValue: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold'
   },
   headerDateLabel: {
     color: '#93C5FD',
-    fontSize: 9,
+    fontSize: 11,
     marginBottom: 2
   },
   headerDateValue: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: 'bold'
   },
   headerLogo: {
     position: 'absolute',
     right: 20,
     top: 20,
-    width: 80,
-    height: 80
+    width: 90,
+    height: 90
   },
   content: {
-    padding: 20
+    padding: 23
   },
   simulationsContainer: {
     flexDirection: 'row',
-    gap: 15,
-    marginBottom: 15
+    gap: 17,
+    marginBottom: 17
   },
   simulationCard: {
     flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    padding: 15,
+    padding: 17,
     borderWidth: 1,
     borderColor: '#E2E8F0'
   },
   simulationHeader: {
-    marginBottom: 8,
-    paddingBottom: 6,
+    marginBottom: 10,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0'
   },
   simulationType: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1E293B'
   },
@@ -103,37 +103,37 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 4,
     paddingVertical: 2,
-    paddingHorizontal: 6
+    paddingHorizontal: 8
   },
   label: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#64748B'
   },
   value: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#1E293B',
     fontWeight: 'bold'
   },
   comparisonSection: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
+    padding: 17,
+    marginBottom: 17,
     borderWidth: 1,
     borderColor: '#E2E8F0'
   },
   comparisonTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#1E293B',
-    marginBottom: 12,
-    paddingBottom: 8,
+    marginBottom: 14,
+    paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0'
   },
   comparisonGrid: {
     flexDirection: 'row',
-    gap: 8
+    gap: 10
   },
   comparisonCard: {
     flex: 1,
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0'
   },
   comparisonCardTitle: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#64748B',
     marginBottom: 3
   },
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   recommendationSection: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    padding: 15,
+    padding: 17,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     marginBottom: 40
@@ -170,48 +170,48 @@ const styles = StyleSheet.create({
   recommendationHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
-    paddingBottom: 8
+    paddingBottom: 10
   },
   recommendationTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1E293B'
   },
   recommendationText: {
-    fontSize: 11,
+    fontSize: 13,
     color: '#475569',
     lineHeight: 1.4
   },
   recommendationHighlight: {
     backgroundColor: '#F0FDF4',
     borderRadius: 6,
-    padding: 10,
-    marginTop: 8
+    padding: 12,
+    marginTop: 10
   },
   recommendationColumns: {
     flexDirection: 'row',
-    gap: 10
+    gap: 12
   },
   recommendationColumn: {
     flex: 1
   },
   recommendationHighlightText: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#166534',
     lineHeight: 1.4
   },
   footer: {
     position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
+    bottom: 23,
+    left: 23,
+    right: 23,
     textAlign: 'center',
     color: '#94A3B8',
-    fontSize: 9,
-    paddingTop: 8,
+    fontSize: 11,
+    paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: '#E2E8F0'
   }
