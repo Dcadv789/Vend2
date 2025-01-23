@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0'
   },
   comparisonCardTitle: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#64748B',
     marginBottom: 3
   },
@@ -214,6 +214,40 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: '#E2E8F0'
+  },
+  table: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 4,
+    marginBottom: 20
+  },
+  tableHeader: {
+    backgroundColor: '#F8FAFC',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    flexDirection: 'row'
+  },
+  tableHeaderCell: {
+    padding: 8,
+    flex: 1,
+    fontSize: 10,
+    color: '#64748B',
+    fontWeight: 'bold'
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0'
+  },
+  tableCell: {
+    padding: 8,
+    flex: 1,
+    fontSize: 10,
+    color: '#1E293B'
+  },
+  lastTableRow: {
+    flexDirection: 'row'
   }
 });
 
@@ -262,6 +296,41 @@ const PDFExportFinance: React.FC<PDFExportFinanceProps> = ({
       </Svg>
     </View>
   );
+
+  const renderInstallmentsTable = (installments: any[], startIndex: number, endIndex: number) => (
+    <View style={styles.table}>
+      <View style={styles.tableHeader}>
+        <Text style={[styles.tableHeaderCell, { flex: 0.5 }]}>Nº</Text>
+        <Text style={styles.tableHeaderCell}>Data</Text>
+        <Text style={styles.tableHeaderCell}>Simulação A</Text>
+        <Text style={styles.tableHeaderCell}>Simulação B</Text>
+        <Text style={styles.tableHeaderCell}>Diferença</Text>
+      </View>
+      {installments.slice(startIndex, endIndex).map((_, index) => {
+        const currentIndex = startIndex + index;
+        const installmentA = selectedSimA.installments[currentIndex] || { number: currentIndex + 1, date: '-', payment: 0 };
+        const installmentB = selectedSimB.installments[currentIndex] || { number: currentIndex + 1, date: '-', payment: 0 };
+        const diff = installmentA.payment - installmentB.payment;
+
+        return (
+          <View style={currentIndex === endIndex - 1 ? styles.lastTableRow : styles.tableRow} key={currentIndex}>
+            <Text style={[styles.tableCell, { flex: 0.5 }]}>{currentIndex + 1}</Text>
+            <Text style={styles.tableCell}>
+              {installmentA.date !== '-' ? installmentA.date : installmentB.date}
+            </Text>
+            <Text style={styles.tableCell}>{formatCurrency(installmentA.payment)}</Text>
+            <Text style={styles.tableCell}>{formatCurrency(installmentB.payment)}</Text>
+            <Text style={styles.tableCell}>
+              {formatCurrency(Math.abs(diff))} - Opção {diff > 0 ? 'B' : 'A'} mais econômica
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+
+  const totalInstallments = Math.max(selectedSimA.installments.length, selectedSimB.installments.length);
+  const pages = Math.ceil((totalInstallments - 20) / 25) + 1;
 
   return (
     <Document>
@@ -441,6 +510,31 @@ const PDFExportFinance: React.FC<PDFExportFinanceProps> = ({
           Copyright ® 2025 DC ADVISORS - Todos os direitos reservados
         </Text>
       </Page>
+
+      <Page size="A4" style={styles.page}>
+        {renderHeader('Evolução das Parcelas')}
+        <View style={styles.content}>
+          {renderInstallmentsTable(selectedSimA.installments, 0, 20)}
+        </View>
+        <Text style={styles.footer}>
+          Copyright ® 2025 DC ADVISORS - Todos os direitos reservados
+        </Text>
+      </Page>
+
+      {Array.from({ length: pages - 1 }).map((_, index) => (
+        <Page key={index} size="A4" style={styles.page}>
+          <View style={styles.content}>
+            {renderInstallmentsTable(
+              selectedSimA.installments,
+              20 + index * 25,
+              Math.min(20 + (index + 1) * 25, totalInstallments)
+            )}
+          </View>
+          <Text style={styles.footer}>
+            Copyright ® 2025 DC ADVISORS - Todos os direitos reservados
+          </Text>
+        </Page>
+      ))}
     </Document>
   );
 };
