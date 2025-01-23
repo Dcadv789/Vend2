@@ -13,15 +13,14 @@ const styles = StyleSheet.create({
   page: {
     padding: 0,
     fontFamily: 'Helvetica',
-    backgroundColor: '#FFFFFF',
-    position: 'relative'
+    backgroundColor: '#FFFFFF'
   },
   header: {
     backgroundColor: '#1E40AF',
     padding: 20,
     paddingBottom: 10,
     flexDirection: 'column',
-    height: 110
+    height: 120
   },
   headerContent: {
     flex: 1,
@@ -32,7 +31,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 26,
     marginBottom: 10
   },
   headerRow: {
@@ -47,7 +46,7 @@ const styles = StyleSheet.create({
   },
   headerLabel: {
     color: '#93C5FD',
-    fontSize: 10,
+    fontSize: 11,
     marginBottom: 2
   },
   headerValue: {
@@ -57,12 +56,12 @@ const styles = StyleSheet.create({
   },
   headerDateLabel: {
     color: '#93C5FD',
-    fontSize: 8,
+    fontSize: 9,
     marginBottom: 2
   },
   headerDateValue: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 'bold'
   },
   headerLogo: {
@@ -73,39 +72,38 @@ const styles = StyleSheet.create({
     height: 80
   },
   content: {
-    padding: 30,
-    paddingBottom: 90
+    padding: 20
   },
   simulationsContainer: {
     flexDirection: 'row',
-    gap: 20,
-    marginBottom: 20
+    gap: 15,
+    marginBottom: 15
   },
   simulationCard: {
     flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    padding: 20,
+    padding: 15,
     borderWidth: 1,
     borderColor: '#E2E8F0'
   },
   simulationHeader: {
-    marginBottom: 12,
-    paddingBottom: 8,
+    marginBottom: 8,
+    paddingBottom: 6,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0'
   },
   simulationType: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#1E293B'
   },
   dataRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
-    paddingVertical: 3,
-    paddingHorizontal: 8
+    marginBottom: 4,
+    paddingVertical: 2,
+    paddingHorizontal: 6
   },
   label: {
     fontSize: 10,
@@ -119,17 +117,17 @@ const styles = StyleSheet.create({
   comparisonSection: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    padding: 20,
-    marginBottom: 20,
+    padding: 15,
+    marginBottom: 15,
     borderWidth: 1,
     borderColor: '#E2E8F0'
   },
   comparisonTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#1E293B',
-    marginBottom: 15,
-    paddingBottom: 10,
+    marginBottom: 12,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0'
   },
@@ -141,40 +139,41 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 6,
-    padding: 12,
+    padding: 10,
     borderWidth: 1,
     borderColor: '#E2E8F0'
   },
   comparisonCardTitle: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#64748B',
-    marginBottom: 4
+    marginBottom: 3
   },
   comparisonCardValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#1E293B',
-    marginBottom: 4
+    marginBottom: 3
   },
   comparisonCardLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#059669',
     fontWeight: 'medium'
   },
   recommendationSection: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    padding: 20,
+    padding: 15,
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: '#E2E8F0',
+    marginBottom: 40
   },
   recommendationHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
-    paddingBottom: 12
+    paddingBottom: 8
   },
   recommendationTitle: {
     fontSize: 16,
@@ -189,12 +188,12 @@ const styles = StyleSheet.create({
   recommendationHighlight: {
     backgroundColor: '#F0FDF4',
     borderRadius: 6,
-    padding: 12,
-    marginTop: 12
+    padding: 10,
+    marginTop: 8
   },
   recommendationColumns: {
     flexDirection: 'row',
-    gap: 12
+    gap: 10
   },
   recommendationColumn: {
     flex: 1
@@ -206,22 +205,15 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 30,
-    left: 30,
-    right: 30,
+    bottom: 20,
+    left: 20,
+    right: 20,
     textAlign: 'center',
     color: '#94A3B8',
-    fontSize: 10,
+    fontSize: 9,
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: '#E2E8F0'
-  },
-  pageNumber: {
-    position: 'absolute',
-    bottom: 30,
-    left: 30,
-    fontSize: 10,
-    color: '#94A3B8'
   }
 });
 
@@ -234,8 +226,9 @@ const PDFExportFinance: React.FC<PDFExportFinanceProps> = ({
 }) => {
   const renderHeader = (title: string) => (
     <View style={styles.header}>
-      <Text style={styles.headerTitle}>{title}</Text>
       <View style={styles.headerContent}>
+        <Text style={styles.headerTitle}>{title}</Text>
+        
         <View style={styles.headerRow}>
           <View style={styles.headerColumn}>
             <Text style={styles.headerDateLabel}>Data</Text>
@@ -444,7 +437,6 @@ const PDFExportFinance: React.FC<PDFExportFinanceProps> = ({
             )}
           </View>
         </View>
-        <Text style={styles.pageNumber}>Página 1</Text>
         <Text style={styles.footer}>
           Copyright ® 2025 DC ADVISORS - Todos os direitos reservados
         </Text>
